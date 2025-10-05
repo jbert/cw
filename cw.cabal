@@ -1,0 +1,25 @@
+cabal-version:   3.12
+name:            cw
+version:         0.1.0.0
+license:         NONE
+author:          John Berthels
+maintainer:      john.berthels@gmail.com
+build-type:      Simple
+extra-doc-files: CHANGELOG.md
+
+common warnings
+    ghc-options: -Wall
+
+executable cw
+    import:           warnings
+    main-is:          Main.hs
+    other-modules:
+        , CW.SDL
+        , CW.Scene
+    build-depends:    base ^>=4.18.3.0
+        , containers
+        , mtl
+        , sdl2
+        , text
+    hs-source-dirs:   app
+    default-language: Haskell2010
