@@ -41,12 +41,13 @@ toSDL :: Config -> UI.Pt -> SDL.Point SDL.V2 CInt
 toSDL conf p = SDL.P $ toSDLV2 conf p
 
 fromSDL :: Config -> SDL.Point SDL.V2 GHC.Int.Int32 -> UI.Pt
+-- fromSDL conf (SDL.P (SDL.V2 x y)) = trace ("SDL click: " ++ (show x) ++ "," ++ (show y)) (UI.Pt px py)
 fromSDL conf (SDL.P (SDL.V2 x y)) = UI.Pt px py
   where
     w = width conf
     h = height conf
-    px = fromIntegral w / fromIntegral x
-    py = fromIntegral h / fromIntegral y
+    px = fromIntegral x / fromIntegral w
+    py = fromIntegral y / fromIntegral h
 
 sdlMain :: Chan (Maybe Scene) -> Chan [UI.Input] -> IO ()
 sdlMain sceneChan inputChan = do
@@ -80,7 +81,7 @@ eventToInput _ (SDL.KeyboardEvent ke) =
         && SDL.keysymKeycode (SDL.keyboardEventKeysym ke) == SDL.KeycodeQ
         then Just UI.Quit
         else Nothing
-eventToInput conf (SDL.MouseButtonEvent (SDL.MouseButtonEventData (Just _) SDL.Pressed _ _ _ pos)) = Just $ UI.Mouse $ (fromSDL conf) pos
+eventToInput conf (SDL.MouseButtonEvent (SDL.MouseButtonEventData (Just _) SDL.Pressed _ _ _ pos)) = Just $ UI.Mouse $ fromSDL conf pos
 eventToInput _ _ = Nothing
 
 sdlLoop :: Config -> SDL.Renderer -> Chan (Maybe Scene) -> Chan [UI.Input] -> IO ()
@@ -108,6 +109,7 @@ drawScene conf renderer scene = do
 
     let ls = [(UI.Pt 0.1 0.1, UI.Pt 0.8 0.8)]
     mapM_ (drawLine conf renderer) ls
+    mapM_ (\d -> d (drawLine conf renderer)) (Scene.drawables scene)
 
     surface <- TTF.solid (font conf) (fgColour conf) $ Text.pack $ show (Scene.ticks scene)
     texture <- SDL.createTextureFromSurface renderer surface
