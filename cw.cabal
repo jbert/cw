@@ -14,9 +14,11 @@ executable cw
     import:           warnings
     main-is:          Main.hs
     other-modules:
+        , CW.Game
         , CW.SDL
         , CW.Scene
         , CW.UI
+        , CW.UI.Circle
     build-depends:    base ^>=4.18.3.0
         , containers
         , mtl
