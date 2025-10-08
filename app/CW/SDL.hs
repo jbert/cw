@@ -30,9 +30,8 @@ data Config = Config
 toSDLV2 :: Config -> UI.Pt -> SDL.V2 CInt
 toSDLV2 conf (UI.Pt px py) = SDL.V2 (fromIntegral rx) (fromIntegral ry)
   where
-    w = width conf
     h = height conf
-    x = px * fromIntegral w
+    x = px * fromIntegral h
     y = py * fromIntegral h
     rx = round x :: Integer
     ry = round y :: Integer
@@ -44,9 +43,8 @@ fromSDL :: Config -> SDL.Point SDL.V2 GHC.Int.Int32 -> UI.Pt
 -- fromSDL conf (SDL.P (SDL.V2 x y)) = trace ("SDL click: " ++ (show x) ++ "," ++ (show y)) (UI.Pt px py)
 fromSDL conf (SDL.P (SDL.V2 x y)) = UI.Pt px py
   where
-    w = width conf
     h = height conf
-    px = fromIntegral x / fromIntegral w
+    px = fromIntegral x / fromIntegral h
     py = fromIntegral y / fromIntegral h
 
 sdlMain :: Chan (Maybe Scene) -> Chan [UI.Input] -> IO ()

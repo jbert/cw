@@ -2,7 +2,13 @@
 
 - DONE draw circle around last mouse click
 
-- fix aspect ratio
+- DONE centre the circle
+
+- push SDL config into Reader monad
+  - reader and state
+  - so "load font" can load path+font name from reader
+
+- DONE fix aspect ratio
 - add info bar
 - no drawing in info bar
 - create buttons in info bar
