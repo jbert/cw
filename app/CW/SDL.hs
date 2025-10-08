@@ -6,9 +6,7 @@ import Debug.Trace
 
 import Control.Concurrent
 import qualified Data.Maybe as Maybe
-import Data.Text (Text)
 import qualified Data.Text as Text
-import Data.Word
 import Foreign.C.Types
 import GHC.Int
 import qualified SDL
@@ -18,27 +16,11 @@ import CW.Scene (Scene)
 import qualified CW.Scene as Scene
 import qualified CW.UI as UI
 import CW.UI.Pt (Pt (..))
-
--- import qualified CW.UI.Pt as Pt
 import CW.UI.Rect (Rect (..))
 
--- import qualified CW.UI.Rect as Rect
+import CW.UI.Screen (Config (..))
 
-data Config = Config
-    { width :: Int
-    , height :: Int
-    , name :: Text
-    , bgColour :: SDL.V4 Word8
-    , fgColour :: SDL.V4 Word8
-    , font :: TTF.Font
-    }
-
--- Right hand edge in Game coords (max x)
-rh :: Config -> Double
-rh conf = fromIntegral w / fromIntegral h
-  where
-    w = width conf
-    h = height conf
+-- import qualified CW.UI.Screen as Screen
 
 toSDLV2 :: Config -> Pt -> SDL.V2 CInt
 toSDLV2 conf (Pt px py) = SDL.V2 (fromIntegral rx) (fromIntegral ry)
@@ -102,10 +84,10 @@ drawScene conf renderer scene = do
     SDL.clear renderer
     SDL.rendererDrawColor renderer SDL.$= fgColour conf
 
-    drawUI conf renderer
     let ls = [(Pt 0.1 0.1, Pt 0.8 0.8)]
     mapM_ (drawLine conf renderer) ls
     mapM_ (\d -> d (drawLine conf renderer)) (Scene.drawables scene)
+    mapM_ (\dc -> dc conf (drawLine conf renderer)) (Scene.confDrawables scene)
 
     surface <- TTF.solid (font conf) (fgColour conf) $ Text.pack $ show (Scene.ticks scene)
     texture <- SDL.createTextureFromSurface renderer surface
@@ -116,29 +98,6 @@ drawScene conf renderer scene = do
     SDL.freeSurface surface
 
     SDL.present renderer
-
-drawUI :: Config -> SDL.Renderer -> IO ()
-drawUI conf renderer = do
-    drawLine conf renderer (Pt uil uit, Pt uil uib)
-    drawRect conf renderer $ butRect 0
-    drawRect conf renderer $ butRect 1
-    drawRect conf renderer $ butRect 2
-  where
-    uit = 0.0
-    uil = 1.0
-    uib = 1.0
-    uir = rh conf
-    eps = 0.01
-    l = uil + eps
-    r = uir - eps
-    t = uit + eps
-    -- b = uib - eps
-    butH = 0.1 - (2 * eps)
-    butT :: Int -> Double
-    butT n = t + butH * fromIntegral n
-    butB :: Int -> Double
-    butB n = butT n + butH
-    butRect n = Rect (Pt l $ butB n) (Pt r $ butT n)
 
 sdlMain :: Chan (Maybe Scene) -> Chan [UI.Input] -> IO ()
 sdlMain sceneChan inputChan = do
@@ -152,11 +111,10 @@ sdlMain sceneChan inputChan = do
                 { width = 1024
                 , height = 768
                 , name = "CW"
+                , font = fnt
                 , bgColour = SDL.V4 0 0 255 255
                 , fgColour = SDL.V4 0 255 0 0
-                , font = fnt
                 }
-
     window <-
         SDL.createWindow
             (name conf)

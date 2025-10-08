@@ -2,12 +2,8 @@ module CW.UI.Circle where
 
 import qualified CW.UI as UI
 import CW.UI.Pt (Pt (..))
-import qualified CW.UI.Pt as Pt
 
 data Circle = Circle {centre :: Pt, radius :: Double}
-
-instance UI.Drawable Circle where
-    draw = drawCircle
 
 drawCircle :: Circle -> UI.DrawLine -> IO ()
 drawCircle (Circle (Pt x y) r) dl = do

@@ -12,6 +12,9 @@
 - DONE add info bar
 - NO no drawing in info bar
 - DONE create buttons in info bar
+- DONE pull drawRect up to UI layer as a Drawable
+- DONE have Scene.mk persist the ui
+  - how do we change button state?
 - have "last pressed button" state
 - controls whether click draws square or circle 
 - keyboard shortcuts (1/2) for buttons in info bar

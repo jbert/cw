@@ -19,6 +19,9 @@ executable cw
         , CW.Scene
         , CW.UI
         , CW.UI.Circle
+        , CW.UI.Pt
+        , CW.UI.Rect
+        , CW.UI.Screen
     build-depends:    base ^>=4.18.3.0
         , containers
         , mtl
