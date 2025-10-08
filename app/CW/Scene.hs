@@ -18,5 +18,5 @@ mkDrawers :: Maybe UI.Pt -> [UI.Drawer]
 mkDrawers Nothing = []
 mkDrawers (Just p) = [UI.draw c]
   where
-    r = 0.05
+    r = 0.1
     c = Circle.mk p r

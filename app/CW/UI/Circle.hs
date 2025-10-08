@@ -9,10 +9,11 @@ instance UI.Drawable Circle where
 
 drawCircle :: Circle -> UI.DrawLine -> IO ()
 drawCircle (Circle (UI.Pt x y) r) dl = do
-    let numSteps = 20
-    let steps = [0 .. numSteps]
-    let xs = map (+ x) $ map (* r) $ map cos $ map (* (2 * pi)) steps
-    let ys = map (+ y) $ map (* r) $ map sin $ map (* (2 * pi)) steps
+    let numSteps = 20.0
+    let step = 2 * pi / numSteps
+    let steps = [0, step .. 2 * pi]
+    let xs = map ((+ x) . (* r) . cos) steps
+    let ys = map ((+ y) . (* r) . sin) steps
     let pts = zipWith UI.Pt xs ys
     mapM_ dl $ zip pts (tail pts)
 

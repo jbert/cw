@@ -35,7 +35,7 @@ gameLoop sceneChan inputChan = do
     let scene = Scene.mk gs
     liftIO $ writeChan sceneChan scene
     handleInputs inputChan
-    liftIO $ threadDelay 1000
+    liftIO $ threadDelay (20 * 1000)
     -- We rely on sending 'Nothing' on sceneChan for exit
     gameLoop sceneChan inputChan
 
