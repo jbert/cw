@@ -15,6 +15,10 @@
 - DONE pull drawRect up to UI layer as a Drawable
 - DONE have Scene.mk persist the ui
   - how do we change button state?
+
+- why does button only work once
+  - maybe a debug logging issue?
+
 - have "last pressed button" state
 - controls whether click draws square or circle 
 - keyboard shortcuts (1/2) for buttons in info bar

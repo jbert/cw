@@ -14,10 +14,12 @@ import qualified SDL.Font as TTF
 
 import CW.Scene (Scene)
 import qualified CW.Scene as Scene
-import qualified CW.UI as UI
+import CW.UI.Button (Button (..))
+import CW.UI.Input (Input (..))
 import CW.UI.Pt (Pt (..))
 import CW.UI.Rect (Rect (..))
-
+import CW.UI.RegionMap (RegionMap)
+import qualified CW.UI.RegionMap as RegionMap
 import CW.UI.Screen (Config (..))
 
 -- import qualified CW.UI.Screen as Screen
@@ -42,16 +44,16 @@ fromSDL conf (SDL.P (SDL.V2 x y)) = Pt px py
     px = fromIntegral x / fromIntegral h
     py = fromIntegral y / fromIntegral h
 
-eventToInput :: Config -> SDL.EventPayload -> Maybe UI.Input
+eventToInput :: Config -> SDL.EventPayload -> Maybe Input
 eventToInput _ (SDL.KeyboardEvent ke) =
     if SDL.keyboardEventKeyMotion ke == SDL.Pressed
         && SDL.keysymKeycode (SDL.keyboardEventKeysym ke) == SDL.KeycodeQ
-        then Just UI.Quit
+        then Just Quit
         else Nothing
-eventToInput conf (SDL.MouseButtonEvent (SDL.MouseButtonEventData (Just _) SDL.Pressed _ _ _ pos)) = Just $ UI.Mouse $ fromSDL conf pos
+eventToInput conf (SDL.MouseButtonEvent (SDL.MouseButtonEventData (Just _) SDL.Pressed _ _ _ pos)) = Just $ Mouse $ fromSDL conf pos
 eventToInput _ _ = Nothing
 
-sdlLoop :: Config -> SDL.Renderer -> Chan (Maybe Scene) -> Chan [UI.Input] -> IO ()
+sdlLoop :: Config -> SDL.Renderer -> Chan (Maybe Scene) -> Chan [Input] -> IO ()
 sdlLoop conf renderer sceneChan inputChan = do
     events <- SDL.pollEvents
     let inputs = Maybe.mapMaybe (eventToInput conf . SDL.eventPayload) events
@@ -59,18 +61,31 @@ sdlLoop conf renderer sceneChan inputChan = do
     msc <- readChan sceneChan
     case msc of
         Just sc -> do
-            drawScene conf renderer sc
-            writeChan inputChan inputs
+            buttons <- drawScene conf renderer sc
+            let rm = RegionMap.fromButtons buttons
+            -- traceM ("RM: " ++ show rm)
+            -- traceM ("IN: " ++ show inputs)
+            let inputs' = findButtons rm inputs
+            -- traceM ("IN': " ++ show inputs')
+            writeChan inputChan inputs'
             sdlLoop conf renderer sceneChan inputChan
         Nothing -> return ()
+
+findButtons :: RegionMap -> [Input] -> [Input]
+findButtons rm (i@(Mouse p) : rest) =
+    (if null buttonInputs then [i] else buttonInputs) ++ findButtons rm rest
+  where
+    buttonInputs = RegionMap.find rm p
+findButtons rm (i : rest) =
+    (i : findButtons rm rest)
+findButtons _ [] = []
 
 drawLine :: Config -> SDL.Renderer -> (Pt, Pt) -> IO ()
 drawLine conf renderer (p1, p2) = do
     SDL.drawLine renderer (toSDL conf p1) (toSDL conf p2)
 
 drawRect :: Config -> SDL.Renderer -> Rect -> IO ()
-drawRect conf renderer rect@(Rect (Pt l b) (Pt r t)) = do
-    -- traceM ("DR: " ++ (show rect))
+drawRect conf renderer (Rect (Pt l b) (Pt r t)) = do
     SDL.drawLine renderer (pt l b) (pt r b)
     SDL.drawLine renderer (pt r b) (pt r t)
     SDL.drawLine renderer (pt r t) (pt l t)
@@ -78,7 +93,7 @@ drawRect conf renderer rect@(Rect (Pt l b) (Pt r t)) = do
   where
     pt x y = toSDL conf (Pt x y)
 
-drawScene :: Config -> SDL.Renderer -> Scene -> IO ()
+drawScene :: Config -> SDL.Renderer -> Scene -> IO [Button]
 drawScene conf renderer scene = do
     SDL.rendererDrawColor renderer SDL.$= bgColour conf
     SDL.clear renderer
@@ -87,7 +102,8 @@ drawScene conf renderer scene = do
     let ls = [(Pt 0.1 0.1, Pt 0.8 0.8)]
     mapM_ (drawLine conf renderer) ls
     mapM_ (\d -> d (drawLine conf renderer)) (Scene.drawables scene)
-    mapM_ (\dc -> dc conf (drawLine conf renderer)) (Scene.confDrawables scene)
+    buttons' <- mapM (\dc -> dc conf (drawLine conf renderer)) (Scene.confDrawables scene)
+    let buttons = concat buttons'
 
     surface <- TTF.solid (font conf) (fgColour conf) $ Text.pack $ show (Scene.ticks scene)
     texture <- SDL.createTextureFromSurface renderer surface
@@ -98,8 +114,9 @@ drawScene conf renderer scene = do
     SDL.freeSurface surface
 
     SDL.present renderer
+    return buttons
 
-sdlMain :: Chan (Maybe Scene) -> Chan [UI.Input] -> IO ()
+sdlMain :: Chan (Maybe Scene) -> Chan [Input] -> IO ()
 sdlMain sceneChan inputChan = do
     SDL.initializeAll
     TTF.initialize

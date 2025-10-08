@@ -1,7 +1,7 @@
 module CW.UI.Pt where
 
 data Pt = Pt Double Double
-    deriving (Show, Eq)
+    deriving (Show, Eq, Ord)
 
 mk :: Double -> Double -> Pt
 mk = Pt

@@ -1,17 +1,15 @@
 module CW.UI where
 
+import CW.UI.Button (Button)
 import CW.UI.Pt (Pt (..))
 import CW.UI.Rect (Rect (..))
 import CW.UI.Screen (Config)
-
-data Input = Quit | Mouse Pt
-    deriving (Show, Eq)
 
 type DrawLine = (Pt, Pt) -> IO ()
 
 type Drawer = DrawLine -> IO ()
 
-type ConfigDrawer = Config -> DrawLine -> IO ()
+type ConfigDrawer = Config -> DrawLine -> IO [Button]
 
 drawRect :: Rect -> DrawLine -> IO ()
 drawRect (Rect (Pt l b) (Pt r t)) dl = do

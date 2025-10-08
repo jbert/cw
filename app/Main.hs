@@ -9,39 +9,52 @@ import qualified CW.Game as Game
 import qualified CW.SDL as SDL
 import CW.Scene (Scene)
 import qualified CW.Scene as Scene
-import qualified CW.UI as UI
+import CW.UI.Input (Input (..))
 
 tick :: StateT Game.State IO ()
 tick = do
     gs <- get
     put gs{Game.ticks = succ $ Game.ticks gs}
 
-handleInput :: UI.Input -> StateT Game.State IO ()
-handleInput UI.Quit = do
+handleInput :: Input -> StateT Game.State IO ()
+handleInput Quit = do
     modify (\s -> s{Game.shouldQuit = True})
-handleInput (UI.Mouse p) = do
-    traceM ("Mouse click: " ++ show p)
+handleInput (Mouse p) = do
+    -- traceM ("Mouse click: " ++ show p)
     modify (\s -> s{Game.lastClick = Just p})
+handleInput ButtonCircle = do
+    traceM "Circle"
+    return ()
+handleInput ButtonSquare = do
+    traceM "Square"
+    return ()
 
-handleInputs :: Chan [UI.Input] -> StateT Game.State IO ()
+handleInputs :: Chan [Input] -> StateT Game.State IO ()
 handleInputs inputChan = do
     inputs <- liftIO $ readChan inputChan
+    -- traceM ("Main inputs: " ++ show inputs)
     mapM_ handleInput inputs
 
-gameLoop :: Chan (Maybe Scene) -> Chan [UI.Input] -> StateT Game.State IO ()
+buttonInputs :: [Input]
+buttonInputs =
+    [ ButtonCircle
+    , ButtonSquare
+    ]
+
+gameLoop :: Chan (Maybe Scene) -> Chan [Input] -> StateT Game.State IO ()
 gameLoop sceneChan inputChan = do
     tick
     gs <- get
-    let scene = Scene.mk gs
+    let scene = Scene.mk buttonInputs gs
     liftIO $ writeChan sceneChan scene
     handleInputs inputChan
     liftIO $ threadDelay (20 * 1000)
     -- We rely on sending 'Nothing' on sceneChan for exit
     gameLoop sceneChan inputChan
 
-gameMain :: Chan (Maybe Scene) -> Chan [UI.Input] -> IO ()
+gameMain :: Chan (Maybe Scene) -> Chan [Input] -> IO ()
 gameMain sceneChan inputChan = do
-    ((), gs) <- runStateT (gameLoop sceneChan inputChan) Game.initialState
+    gs <- execStateT (gameLoop sceneChan inputChan) Game.initialState
     print gs
     return ()
 

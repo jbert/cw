@@ -2,7 +2,9 @@ module CW.Scene where
 
 import qualified CW.Game as Game
 import qualified CW.UI as UI
+import CW.UI.Button (Button (..))
 import qualified CW.UI.Circle as Circle
+import CW.UI.Input (Input (..))
 import CW.UI.Pt (Pt (..))
 import CW.UI.Rect (Rect (..))
 import CW.UI.Screen (Config (..))
@@ -10,13 +12,14 @@ import qualified CW.UI.Screen as Screen
 
 data Scene = Scene {ticks :: Integer, drawables :: [UI.Drawer], confDrawables :: [UI.ConfigDrawer]}
 
-mk :: Game.State -> Maybe Scene
-mk gs
+mk :: [Input] -> Game.State -> Maybe Scene
+mk buttonInputs gs
     | Game.shouldQuit gs = Nothing
-    | otherwise = Just $ Scene ts ds [mkUI]
+    | otherwise = Just $ Scene ts ds [confDrawer]
   where
     ts = Game.ticks gs
     ds = mkDrawers (Game.lastClick gs)
+    confDrawer = mkUI buttonInputs
 
 -- cds = mkUI
 
@@ -34,12 +37,12 @@ rh conf = fromIntegral w / fromIntegral h
     w = Screen.width conf
     h = Screen.height conf
 
-mkUI :: UI.ConfigDrawer
-mkUI conf dl = do
+mkUI :: [Input] -> UI.ConfigDrawer
+mkUI buttonInputs conf dl = do
     dl (Pt uil uit, Pt uil uib)
-    UI.drawRect (butRect 0) dl
-    UI.drawRect (butRect 1) dl
-    UI.drawRect (butRect 2) dl
+    let buttons = zipWith (Button . butRect) [0 ..] buttonInputs
+    mapM_ (\(Button re _) -> UI.drawRect re dl) buttons
+    return buttons
   where
     uit = 0.0
     uil = 1.0
@@ -51,8 +54,8 @@ mkUI conf dl = do
     t = uit + eps
     -- b = uib - eps
     butH = 0.1 - (2 * eps)
-    butT :: Int -> Double
-    butT n = t + butH * fromIntegral n
     butB :: Int -> Double
-    butB n = butT n + butH
+    butB n = t + butH * fromIntegral n
+    butT :: Int -> Double
+    butT n = butB n + butH
     butRect n = Rect (Pt l $ butB n) (Pt r $ butT n)
