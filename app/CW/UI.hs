@@ -1,7 +1,7 @@
 module CW.UI where
 
-data Pt = Pt Double Double
-    deriving (Show, Eq)
+import CW.UI.Pt (Pt)
+import qualified CW.UI.Pt as Pt
 
 data Input = Quit | Mouse Pt
     deriving (Show, Eq)
