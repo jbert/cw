@@ -6,7 +6,9 @@ import CW.UI.Button (Button (..))
 import qualified CW.UI.Circle as Circle
 import CW.UI.Input (Input (..))
 import CW.UI.Pt (Pt (..))
+import qualified CW.UI.Pt as Pt
 import CW.UI.Rect (Rect (..))
+import qualified CW.UI.Rect as Rect
 import CW.UI.Screen (Config (..))
 import qualified CW.UI.Screen as Screen
 
@@ -18,17 +20,24 @@ mk buttonInputs gs
     | otherwise = Just $ Scene ts ds [confDrawer]
   where
     ts = Game.ticks gs
-    ds = mkDrawers (Game.lastClick gs)
+    ds = mkDrawers (Game.lastClick gs) (Game.mode gs)
     confDrawer = mkUI buttonInputs
 
 -- cds = mkUI
 
-mkDrawers :: Maybe Pt -> [UI.Drawer]
-mkDrawers Nothing = []
-mkDrawers (Just p) = [Circle.drawCircle c]
-  where
-    r = 0.1
-    c = Circle.mk p r
+mkDrawers :: Maybe Pt -> Game.Mode -> [UI.Drawer]
+mkDrawers Nothing _ = []
+mkDrawers (Just p) m = case m of
+    Game.Circle -> [Circle.drawCircle c]
+      where
+        r = 0.1
+        c = Circle.mk p r
+    Game.Square -> [UI.drawRect (Rect.mk bl tr)]
+      where
+        sz = 0.1
+        extent = Pt (sz / 2) (sz / 2)
+        tr = Pt.add p extent
+        bl = Pt.sub p extent
 
 -- Right hand edge in Game coords (max x)
 rh :: Config -> Double

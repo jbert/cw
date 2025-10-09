@@ -2,8 +2,6 @@
 
 module CW.SDL where
 
-import Debug.Trace
-
 import Control.Concurrent
 import qualified Data.Maybe as Maybe
 import qualified Data.Text as Text
@@ -37,7 +35,6 @@ toSDL :: Config -> Pt -> SDL.Point SDL.V2 CInt
 toSDL conf p = SDL.P $ toSDLV2 conf p
 
 fromSDL :: Config -> SDL.Point SDL.V2 GHC.Int.Int32 -> Pt
--- fromSDL conf (SDL.P (SDL.V2 x y)) = trace ("SDL click: " ++ (show x) ++ "," ++ (show y)) (Pt px py)
 fromSDL conf (SDL.P (SDL.V2 x y)) = Pt px py
   where
     h = height conf
@@ -63,10 +60,7 @@ sdlLoop conf renderer sceneChan inputChan = do
         Just sc -> do
             buttons <- drawScene conf renderer sc
             let rm = RegionMap.fromButtons buttons
-            -- traceM ("RM: " ++ show rm)
-            -- traceM ("IN: " ++ show inputs)
             let inputs' = findButtons rm inputs
-            -- traceM ("IN': " ++ show inputs')
             writeChan inputChan inputs'
             sdlLoop conf renderer sceneChan inputChan
         Nothing -> return ()
@@ -76,8 +70,7 @@ findButtons rm (i@(Mouse p) : rest) =
     (if null buttonInputs then [i] else buttonInputs) ++ findButtons rm rest
   where
     buttonInputs = RegionMap.find rm p
-findButtons rm (i : rest) =
-    (i : findButtons rm rest)
+findButtons rm (i : rest) = i : findButtons rm rest
 findButtons _ [] = []
 
 drawLine :: Config -> SDL.Renderer -> (Pt, Pt) -> IO ()

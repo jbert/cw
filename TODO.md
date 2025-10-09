@@ -14,13 +14,16 @@
 - DONE create buttons in info bar
 - DONE pull drawRect up to UI layer as a Drawable
 - DONE have Scene.mk persist the ui
-  - how do we change button state?
+  - how do we draw different button state?
 
-- why does button only work once
-  - maybe a debug logging issue?
+- DONE why does button only work once
+  - YES maybe a debug logging issue?
 
-- have "last pressed button" state
-- controls whether click draws square or circle 
+- DONE have "last pressed button" state
+- DONE controls whether click draws square or circle 
 - keyboard shortcuts (1/2) for buttons in info bar
+- accumulate drawables
 - snap drawables to grid
+- second click removes drawable
+  - use grid as input grid
 

@@ -1,7 +1,5 @@
 module Main where
 
-import Debug.Trace
-
 import Control.Concurrent
 import Control.Monad.State
 
@@ -20,19 +18,15 @@ handleInput :: Input -> StateT Game.State IO ()
 handleInput Quit = do
     modify (\s -> s{Game.shouldQuit = True})
 handleInput (Mouse p) = do
-    -- traceM ("Mouse click: " ++ show p)
     modify (\s -> s{Game.lastClick = Just p})
 handleInput ButtonCircle = do
-    traceM "Circle"
     modify (\s -> s{Game.mode = Game.Circle})
 handleInput ButtonSquare = do
-    traceM "Square"
     modify (\s -> s{Game.mode = Game.Square})
 
 handleInputs :: Chan [Input] -> StateT Game.State IO ()
 handleInputs inputChan = do
     inputs <- liftIO $ readChan inputChan
-    -- traceM ("Main inputs: " ++ show inputs)
     mapM_ handleInput inputs
 
 buttonInputs :: [Input]
@@ -45,7 +39,6 @@ gameLoop :: Chan (Maybe Scene) -> Chan [Input] -> StateT Game.State IO ()
 gameLoop sceneChan inputChan = do
     tick
     gs <- get
-    traceM ("GS: " ++ show gs)
     let scene = Scene.mk buttonInputs gs
     liftIO $ writeChan sceneChan scene
     handleInputs inputChan
