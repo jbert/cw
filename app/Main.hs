@@ -24,10 +24,10 @@ handleInput (Mouse p) = do
     modify (\s -> s{Game.lastClick = Just p})
 handleInput ButtonCircle = do
     traceM "Circle"
-    return ()
+    modify (\s -> s{Game.mode = Game.Circle})
 handleInput ButtonSquare = do
     traceM "Square"
-    return ()
+    modify (\s -> s{Game.mode = Game.Square})
 
 handleInputs :: Chan [Input] -> StateT Game.State IO ()
 handleInputs inputChan = do
@@ -45,6 +45,7 @@ gameLoop :: Chan (Maybe Scene) -> Chan [Input] -> StateT Game.State IO ()
 gameLoop sceneChan inputChan = do
     tick
     gs <- get
+    traceM ("GS: " ++ show gs)
     let scene = Scene.mk buttonInputs gs
     liftIO $ writeChan sceneChan scene
     handleInputs inputChan
