@@ -21,6 +21,7 @@ executable cw
         , CW.UI.Button
         , CW.UI.Circle
         , CW.UI.Input
+        , CW.UI.KeyMap
         , CW.UI.Pt
         , CW.UI.Rect
         , CW.UI.RegionMap

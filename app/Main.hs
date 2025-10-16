@@ -29,10 +29,10 @@ handleInputs inputChan = do
     inputs <- liftIO $ readChan inputChan
     mapM_ handleInput inputs
 
-buttonInputs :: [Input]
+buttonInputs :: [(Char, Input)]
 buttonInputs =
-    [ ButtonCircle
-    , ButtonSquare
+    [ ('1', ButtonCircle)
+    , ('2', ButtonSquare)
     ]
 
 gameLoop :: Chan (Maybe Scene) -> Chan [Input] -> StateT Game.State IO ()

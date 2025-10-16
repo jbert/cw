@@ -18,4 +18,4 @@ empty :: RegionMap
 empty = Map.empty
 
 fromButtons :: [Button] -> RegionMap
-fromButtons buttons = Map.fromList $ map (\(Button r i) -> (r, i)) buttons
+fromButtons buttons = Map.fromList $ map (\(Button r _ i) -> (r, i)) buttons

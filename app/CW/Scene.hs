@@ -14,7 +14,7 @@ import qualified CW.UI.Screen as Screen
 
 data Scene = Scene {ticks :: Integer, drawables :: [UI.Drawer], confDrawables :: [UI.ConfigDrawer]}
 
-mk :: [Input] -> Game.State -> Maybe Scene
+mk :: [(Char, Input)] -> Game.State -> Maybe Scene
 mk buttonInputs gs
     | Game.shouldQuit gs = Nothing
     | otherwise = Just $ Scene ts ds [confDrawer]
@@ -46,11 +46,12 @@ rh conf = fromIntegral w / fromIntegral h
     w = Screen.width conf
     h = Screen.height conf
 
-mkUI :: [Input] -> UI.ConfigDrawer
+mkUI :: [(Char, Input)] -> UI.ConfigDrawer
 mkUI buttonInputs conf dl = do
     dl (Pt uil uit, Pt uil uib)
-    let buttons = zipWith (Button . butRect) [0 ..] buttonInputs
-    mapM_ (\(Button re _) -> UI.drawRect re dl) buttons
+    let ppairs = zip [0 ..] buttonInputs
+    let buttons = map (\(i, (s, inp)) -> Button (butRect i) s inp) ppairs
+    mapM_ (\(Button re _ _) -> UI.drawRect re dl) buttons
     return buttons
   where
     uit = 0.0

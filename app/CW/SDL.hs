@@ -16,6 +16,8 @@ import CW.Scene (Scene)
 import qualified CW.Scene as Scene
 import CW.UI.Button (Button (..))
 import CW.UI.Input (Input (..))
+import CW.UI.KeyMap (KeyMap)
+import qualified CW.UI.KeyMap as KeyMap
 import CW.UI.Pt (Pt (..))
 import CW.UI.RegionMap (RegionMap)
 import qualified CW.UI.RegionMap as RegionMap
@@ -45,16 +47,13 @@ fromSDL (SDL.P (SDL.V2 x y)) = do
         py = fromIntegral y / fromIntegral h
     return $ Pt px py
 
-eventToInput :: (MonadReader Config m) => SDL.EventPayload -> m (Maybe Input)
-eventToInput (SDL.KeyboardEvent ke) =
-    if SDL.keyboardEventKeyMotion ke == SDL.Pressed
-        && SDL.keysymKeycode (SDL.keyboardEventKeysym ke) == SDL.KeycodeQ
-        then return $ Just Quit
-        else return Nothing
-eventToInput (SDL.MouseButtonEvent (SDL.MouseButtonEventData (Just _) SDL.Pressed _ _ _ pos)) = do
+eventToInput :: (MonadReader Config m) => KeyMap -> SDL.EventPayload -> m (Maybe Input)
+eventToInput km (SDL.KeyboardEvent (SDL.KeyboardEventData _ SDL.Pressed _ keySym)) =
+    return $ KeyMap.lookup km (SDL.keysymKeycode keySym)
+eventToInput _ (SDL.MouseButtonEvent (SDL.MouseButtonEventData (Just _) SDL.Pressed _ _ _ pos)) = do
     p <- fromSDL pos
     return $ Just $ Mouse p
-eventToInput _ = return Nothing
+eventToInput _ _ = return Nothing
 
 findButtons :: RegionMap -> [Input] -> [Input]
 findButtons rm (i@(Mouse p) : rest) =
@@ -102,14 +101,15 @@ drawScene renderer scene = do
 sdlLoop :: (MonadIO m, MonadReader Config m) => SDL.Renderer -> Chan (Maybe Scene) -> Chan [Input] -> m ()
 sdlLoop renderer sceneChan inputChan = do
     events <- SDL.pollEvents
-    minputs <- mapM (eventToInput . SDL.eventPayload) events
-    let inputs = Maybe.catMaybes minputs
 
     msc <- liftIO $ readChan sceneChan
     case msc of
         Just sc -> do
             buttons <- drawScene renderer sc
             let rm = RegionMap.fromButtons buttons
+            let km = KeyMap.fromButtons buttons
+            minputs <- mapM ((eventToInput km) . SDL.eventPayload) events
+            let inputs = Maybe.catMaybes minputs
             let inputs' = findButtons rm inputs
             liftIO $ writeChan inputChan inputs'
             sdlLoop renderer sceneChan inputChan

@@ -4,7 +4,7 @@
 
 - DONE centre the circle
 
-- push SDL config into Reader monad
+- DONE push SDL config into Reader monad
   - reader and state
   - so "load font" can load path+font name from reader
 
@@ -20,10 +20,9 @@
   - YES maybe a debug logging issue?
 
 - DONE have "last pressed button" state
-- DONE controls whether click draws square or circle 
-- keyboard shortcuts (1/2) for buttons in info bar
+- DONE controls whether click draws square or circle
+- DONE keyboard shortcuts (1/2) for buttons in info bar
 - accumulate drawables
 - snap drawables to grid
 - second click removes drawable
   - use grid as input grid
-
